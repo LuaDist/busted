@@ -1,0 +1,51 @@
+type = "x86"
+arch = "Windows"
+author = "Olivine Labs"
+depends = {
+[[lua >= 5.1]],
+[[lua_cliargs >= 2.0]],
+[[luafilesystem >= 1.5.0]],
+[[dkjson >= 2.1.0]],
+[[say >= 1.2]],
+[[luassert >= 1.6]],
+[[ansicolors >= 1.0]],
+[[penlight >= 1.0.0]],
+}
+
+desc = "An elegant, extensible, testing framework. Ships with a large amount of useful asserts, plus the ability to write your own. Output in pretty or plain terminal format, JSON, or TAP for CI integration. Great for TDD and unit, integration, and functional tests."
+version = "1.6"
+maintainer = "Peter Drahoš"
+files = {
+Runtime = {
+[[lib\lua\busted\core.lua]],
+[[lib\lua\busted\output\utf_terminal.lua]],
+[[lib\lua\busted\output\plain_terminal.lua]],
+[[lib\lua\busted\output\TAP.lua]],
+[[lib\lua\busted\output\json.lua]],
+[[lib\lua\busted\output\junit.lua]],
+[[lib\lua\busted\init.lua]],
+[[lib\lua\busted\languages\en.lua]],
+[[lib\lua\busted\languages\ar.lua]],
+[[lib\lua\busted\languages\fr.lua]],
+[[lib\lua\busted\languages\nl.lua]],
+[[lib\lua\busted\languages\ru.lua]],
+[[lib\lua\busted\languages\ua.lua]],
+[[lib\lua\busted\languages\zh.lua]],
+[[bin\busted.exe]],
+}
+,
+Data = {
+[[share\busted\README.md]],
+[[share\busted\LICENSE]],
+[[share\busted\CONTRIBUTING.md]],
+}
+,
+Other = {
+[[share\busted\etc\busted_bootstrap]],
+}
+,
+}
+
+license = "MIT/X11"
+name = "busted"
+url = "http://olivinelabs.com/busted/"
