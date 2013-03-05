@@ -1,0 +1,21 @@
+--- This file is part of LuaDist project
+
+name = "busted"
+version = "1.6"
+
+desc = "An elegant, extensible, testing framework. Ships with a large amount of useful asserts, plus the ability to write your own. Output in pretty or plain terminal format, JSON, or TAP for CI integration. Great for TDD and unit, integration, and functional tests."
+author = "Olivine Labs"
+license = "MIT/X11"
+url = "http://olivinelabs.com/busted/"
+maintainer = "Peter Drahoš"
+
+depends = {
+  "lua >= 5.1",
+  "lua_cliargs >= 2.0",
+  "luafilesystem >= 1.5.0",
+  "dkjson >= 2.1.0",
+  "say >= 1.2-1",
+  "luassert >= 1.6",
+  "ansicolors >= 1.0",
+  "penlight >= 1.0.0"
+}
