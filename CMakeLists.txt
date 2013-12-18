@@ -21,7 +21,7 @@ endif ()
 
 add_custom_command(
   OUTPUT ${SOURCE_DIR}/bin/busted_bootstrap
-  COMMAND tar -xjvf ${SOURCE_FILE}
+  COMMAND tar -xzvf ${SOURCE_FILE}
   DEPENDS ${SOURCE_FILE}
 )
 
