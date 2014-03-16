@@ -5,6 +5,7 @@ assert(type(after_each) == "function")
 assert(type(spy) == "table")
 assert(type(stub) == "table")
 assert(type(mock) == "function")
+local busted = require("busted")
 
 local test_val = false
 
@@ -256,3 +257,133 @@ teardown A
   end)
 
 end)
+
+it("Malformated Lua code gets reported correctly", function()
+  local filename = ".malformed_test.lua"
+  local f = io.open(filename,"w")
+  f:write("end)") -- write some non-sense which will cause a parse error
+  f:close()
+  local statuses = busted.run_internal_test(filename)
+  assert.is_equal(#statuses,1)
+  local status = statuses[1]
+  assert.is_equal(status.type, "failure")
+  assert.is_equal(status.description, "Busted process errors occured / Failed executing testfile; "..filename)
+  assert.is_truthy(status.err:match("expected"))
+  os.remove(filename)
+end)
+
+it("finally callback is called in case of success", function()
+  local f = spy.new(function() end)
+  busted.run_internal_test(function()
+	  it("write variable in finally",function()
+		  finally(f)
+			assert.is_true(true)						     
+		end)
+	end)				   
+  assert.spy(f).was_called(1)
+end)
+
+it("finally callback is called in case of error", function()
+  local f = spy.new(function() end)
+  busted.run_internal_test(function()
+		it("write variable in finally",function()
+			finally(f)
+			assert.is_true(false)						     
+		end)
+	end)
+	assert.spy(f).was_called(1)
+end)
+
+
+describe("testing the done callback with tokens", function()
+  
+  it("Tests done call back ordered", function(done)
+    stub(done, "done_cb") -- create a stub to prevent actually calling 'done'
+    done:wait_ordered("1", "2", "3")
+    assert.has_no_error(function() done("1") end)
+    assert.has_error(function() done("1") end)      -- was already done
+    assert.has_error(function() done("3") end)      -- bad order
+    assert.has_no_error(function() done("2") end)
+    assert.has_error(function() done("this is no valid token") end)
+    assert.has_no_error(function() done("3") end)
+    assert.has_error(function() done("3") end)      -- tokenlist empty by now
+    assert.stub(done.done_cb).was.called(1)
+    done.done_cb:revert() -- revert so test can complete
+  end)
+  
+  it("Tests done call back unordered", function(done)
+    stub(done, "done_cb") -- create a stub to prevent actually calling 'done'
+    done:wait_unordered("1", "2", "3")
+    assert.has_no_error(function() done("1") end)
+    assert.has_error(function() done("1") end)      -- was already done
+    assert.has_no_error(function() done("3") end)   -- different order
+    assert.has_no_error(function() done("2") end)
+    assert.has_error(function() done("this is no valid token") end)
+    assert.has_error(function() done("3") end)      -- tokenlist empty by now
+    assert.stub(done.done_cb).was.called(1)
+    done.done_cb:revert() -- revert so test can complete
+  end)
+  
+  it("Tests done call back defaulting to ordered", function(done)
+    stub(done, "done_cb") -- create a stub to prevent actually calling 'done'
+    done:wait("1", "2")
+    assert.has_error(function() done("2") end)     -- different order
+    assert.has_no_error(function() done("1") end)
+    assert.has_no_error(function() done("2") end)  
+    done.done_cb:revert() -- revert so test can complete
+  end)
+  
+end)
+
+--[[  TODO: uncomment this failing test and fix it
+describe("testing done callbacks being provided", function()
+  setup(function(done)
+    assert.is_table(done)
+    assert.is_function(done.wait)
+  end)
+  before_each(function(done)
+    assert.is_table(done)
+    assert.is_function(done.wait)
+  end)
+  after_each(function(done)
+    assert.is_table(done)
+    assert.is_function(done.wait)
+  end)
+  teardown(function(done)
+    assert.is_table(done)
+    assert.is_function(done.wait)
+  end)
+  it("Tests done callbacks being provided", function(done)
+    assert.is_table(done)
+    assert.is_function(done.wait)
+  end)
+end)
+
+describe("testing done callbacks being provided for async tests", function()
+  setup(function(done)
+    async()
+    assert.is_table(done)
+    assert.is_function(done.wait)
+  end)
+  before_each(function(done)
+    async()
+    assert.is_table(done)
+    assert.is_function(done.wait)
+  end)
+  after_each(function(done)
+    async()
+    assert.is_table(done)
+    assert.is_function(done.wait)
+  end)
+  teardown(function(done)
+    async()
+    assert.is_table(done)
+    assert.is_function(done.wait)
+  end)
+  it("Tests done callbacks being provided for async tests", function(done)
+    async()
+    assert.is_table(done)
+    assert.is_function(done.wait)
+  end)
+end)
+--]]
