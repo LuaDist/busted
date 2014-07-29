@@ -1,7 +1,7 @@
 --- This file is part of LuaDist project
 
 name = "busted"
-version = "1.10.0"
+version = "2.0.rc1"
 
 desc = "An elegant, extensible, testing framework. Ships with a large amount of useful asserts, plus the ability to write your own. Output in pretty or plain terminal format, JSON, or TAP for CI integration. Great for TDD and unit, integration, and functional tests."
 author = "Olivine Labs"
@@ -18,5 +18,6 @@ depends = {
   "luassert >= 1.6",
   "ansicolors >= 1.0",
   "penlight >= 1.0.0",
+  "mediator_lua >= 1.1",
   "srlua >= 5.1",
 }

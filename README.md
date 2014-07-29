@@ -6,7 +6,7 @@ Busted
 busted is a unit testing framework with a focus on being **easy to
 use**. Supports Lua >= 5.1, luajit >= 2.0.0, and moonscript.
 
-Check out the [official docs](http://www.olivinelabs.com/busted) for
+Check out the [official docs](http://olivinelabs.com/busted) for
 extended info.
 
 busted test specs read naturally without being too verbose. You can even
@@ -22,34 +22,34 @@ streaming, and TAP-compatible output that allows you to run busted specs
 within most CI servers.
 
 ```lua
-describe("Busted unit testing framework", function()
-  describe("should be awesome", function()
-    it("should be easy to use", function()
-      assert.truthy("Yup.")
+describe('Busted unit testing framework', function()
+  describe('should be awesome', function()
+    it('should be easy to use', function()
+      assert.truthy('Yup.')
     end)
 
-    it("should have lots of features", function()
+    it('should have lots of features', function()
       -- deep check comparisons!
-      assert.same({ table = "great"}, { table = "great" })
+      assert.same({ table = 'great'}, { table = 'great' })
 
       -- or check by reference!
-      assert.is_not.equals({ table = "great"}, { table = "great"})
+      assert.is_not.equals({ table = 'great'}, { table = 'great'})
 
       assert.falsy(nil)
-      assert.error(function() error("Wat") end)
+      assert.error(function() error('Wat') end)
     end)
 
-    it("should provide some shortcuts to common functions", function()
+    it('should provide some shortcuts to common functions', function()
       assert.unique({{ thing = 1 }, { thing = 2 }, { thing = 3 }})
     end)
 
-    it("should have mocks and spies for functional tests", function()
-      local thing = require("thing_module")
-      spy.spy_on(thing, "greet")
-      thing.greet("Hi!")
+    it('should have mocks and spies for functional tests', function()
+      local thing = require('thing_module')
+      spy.spy_on(thing, 'greet')
+      thing.greet('Hi!')
 
       assert.spy(thing.greet).was.called()
-      assert.spy(thing.greet).was.called_with("Hi!")
+      assert.spy(thing.greet).was.called_with('Hi!')
     end)
   end)
 end)
@@ -71,9 +71,11 @@ Install these dependencies for core testing:
 
 ```
 luarocks install copas
-luarocks install lua-ev
+luarocks install lua-ev scm --server=http://luarocks.org/repositories/rocks-scm/
 luarocks install moonscript
 ```
+
+(Note: you must have `libev` installed to run `lua-ev`; you can `brew install libev` or `apt-get install libev-dev`)
 
 Then to reinstall and run tests:
 
