@@ -1,11 +1,12 @@
-local pretty = require 'pl.pretty'
-
-return function(options, busted)
-  local handler = require 'busted.outputHandlers.base'(busted)
+local app = require 'pl.app'
+return function(options)
+  local busted = require 'busted'
+  local handler = require 'busted.outputHandlers.base'()
   local language = require('busted.languages.' .. options.language)
 
-  handler.suiteEnd = function(name, parent)
-    local system, sayer_pre, sayer_post
+  handler.suiteEnd = function()
+    local system = app.platform()
+    local sayer_pre, sayer_post
     local messages
 
     if system == 'Linux' then
