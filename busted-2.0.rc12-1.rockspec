@@ -1,8 +1,8 @@
 package = 'busted'
-version = '2.0.rc1-0'
+version = '2.0.rc12-1'
 source = {
-  url = 'https://github.com/Olivine-Labs/busted/archive/v2.0.rc1.tar.gz',
-  dir = 'busted-2.0.rc1'
+  url = 'https://github.com/Olivine-Labs/busted/archive/v2.0.rc12-1.tar.gz',
+  dir = 'busted-2.0.rc12-1'
 }
 description = {
   summary = 'Elegant Lua unit testing.',
@@ -19,15 +19,17 @@ description = {
 }
 dependencies = {
   'lua >= 5.1',
-  'lua_cliargs >= 2.0',
+  'lua_cliargs = 3.0-1',
   'luafilesystem >= 1.5.0',
+  'luasystem >= 0.2.0-0',
   'dkjson >= 2.1.0',
-  'say >= 1.2-1',
-  'luassert >= 1.7.0-0',
-  'ansicolors >= 1.0-1',
-  'penlight >= 1.0.0-1',
-  'mediator_lua >= 1.1-3',
+  'say >= 1.3-0',
+  'luassert >= 1.7.8-0',
+  'lua-term >= 0.1-1',
+  'penlight >= 1.3.2-2',
+  'mediator_lua >= 1.1.1-0',
 }
+
 build = {
   type = 'builtin',
   modules = {
@@ -35,13 +37,23 @@ build = {
     ['busted.context']                        = 'busted/context.lua',
     ['busted.environment']                    = 'busted/environment.lua',
     ['busted.compatibility']                  = 'busted/compatibility.lua',
+    ['busted.options']                        = 'busted/options.lua',
     ['busted.done']                           = 'busted/done.lua',
+    ['busted.runner']                         = 'busted/runner.lua',
+    ['busted.status']                         = 'busted/status.lua',
+    ['busted.utils']                          = 'busted/utils.lua',
+    ['busted.block']                          = 'busted/block.lua',
+    ['busted.execute']                        = 'busted/execute.lua',
     ['busted.init']                           = 'busted/init.lua',
 
     ['busted.modules.configuration_loader']   = 'busted/modules/configuration_loader.lua',
     ['busted.modules.luacov']                 = 'busted/modules/luacov.lua',
+    ['busted.modules.standalone_loader']      = 'busted/modules/standalone_loader.lua',
     ['busted.modules.test_file_loader']       = 'busted/modules/test_file_loader.lua',
     ['busted.modules.output_handler_loader']  = 'busted/modules/output_handler_loader.lua',
+    ['busted.modules.helper_loader']          = 'busted/modules/helper_loader.lua',
+    ['busted.modules.filter_loader']          = 'busted/modules/filter_loader.lua',
+    ['busted.modules.cli']                    = 'busted/modules/cli.lua',
 
     ['busted.modules.files.lua']              = 'busted/modules/files/lua.lua',
     ['busted.modules.files.moonscript']       = 'busted/modules/files/moonscript.lua',
@@ -53,11 +65,13 @@ build = {
     ['busted.outputHandlers.TAP']             = 'busted/outputHandlers/TAP.lua',
     ['busted.outputHandlers.json']            = 'busted/outputHandlers/json.lua',
     ['busted.outputHandlers.junit']           = 'busted/outputHandlers/junit.lua',
+    ['busted.outputHandlers.gtest']           = 'busted/outputHandlers/gtest.lua',
     ['busted.outputHandlers.sound']           = 'busted/outputHandlers/sound.lua',
 
     ['busted.languages.en']                   = 'busted/languages/en.lua',
     ['busted.languages.ar']                   = 'busted/languages/ar.lua',
     ['busted.languages.de']                   = 'busted/languages/de.lua',
+    ['busted.languages.es']                   = 'busted/languages/es.lua',
     ['busted.languages.fr']                   = 'busted/languages/fr.lua',
     ['busted.languages.ja']                   = 'busted/languages/ja.lua',
     ['busted.languages.nl']                   = 'busted/languages/nl.lua',
@@ -65,6 +79,7 @@ build = {
     ['busted.languages.th']                   = 'busted/languages/th.lua',
     ['busted.languages.ua']                   = 'busted/languages/ua.lua',
     ['busted.languages.zh']                   = 'busted/languages/zh.lua',
+    ['busted.languages.it']                   = 'busted/languages/it.lua',
   },
   install = {
     bin = {

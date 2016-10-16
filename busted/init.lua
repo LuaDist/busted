@@ -1,133 +1,135 @@
-math.randomseed(os.time())
-
-local function shuffle(t)
-  local n = #t
-  while n >= 2 do
-    local k = math.random(n)
-    t[n], t[k] = t[k], t[n]
-    n = n - 1
-  end
-  return t
-end
-
-return function(busted)
-  local function execAll(descriptor, current, propagate)
-    local parent = busted.context.parent(current)
-
-    if propagate and parent then execAll(descriptor, parent, propagate) end
-
-    local list = current[descriptor]
-
-    if list then
-      for _, v in pairs(list) do
-        busted.safe(descriptor, v.run, v)
-      end
-    end
-  end
-
-  local function dexecAll(descriptor, current, propagate)
-    local parent = busted.context.parent(current)
-    local list = current[descriptor]
-
-    if list then
-      for _, v in pairs(list) do
-        busted.safe(descriptor, v.run, v)
-      end
-    end
-
-    if propagate and parent then execAll(descriptor, parent, propagate) end
-  end
+local function init(busted)
+  local block = require 'busted.block'(busted)
 
   local file = function(file)
-    busted.publish({ 'file', 'start' }, file.name)
-
-    if busted.safe('file', file.run, file, true) then
-      busted.execute(file)
+    busted.wrap(file.run)
+    if busted.safe_publish('file', { 'file', 'start' }, file) then
+      block.execute('file', file)
     end
-
-    busted.publish({ 'file', 'end' }, file.name)
+    busted.safe_publish('file', { 'file', 'end' }, file)
   end
 
   local describe = function(describe)
     local parent = busted.context.parent(describe)
-
-    busted.publish({ 'describe', 'start' }, describe, parent)
-
-    if not describe.env then describe.env = {} end
-
-    local randomize = false
-    describe.env.randomize = function()
-      randomize = true
+    if busted.safe_publish('describe', { 'describe', 'start' }, describe, parent) then
+      block.execute('describe', describe)
     end
-
-    if busted.safe('describe', describe.run, describe) then
-      if randomize then
-        shuffle(busted.context.children(describe))
-      end
-      execAll('setup', describe)
-      busted.execute(describe)
-      dexecAll('teardown', describe)
-    end
-
-    busted.publish({ 'describe', 'end' }, describe, parent)
+    busted.safe_publish('describe', { 'describe', 'end' }, describe, parent)
   end
 
-  local it = function(it)
+  local it = function(element)
+    local parent = busted.context.parent(element)
     local finally
 
-    if not it.env then it.env = {} end
-
-    it.env.finally = function(fn)
-      finally = fn
+    if not block.lazySetup(parent) then
+      -- skip test if any setup failed
+      return
     end
 
-    local parent = busted.context.parent(it)
+    if not element.env then element.env = {} end
 
-    execAll('before_each', parent, true)
-    busted.publish({ 'test', 'start' }, it, parent)
-    local res = busted.safe('it', it.run, it)
-    if not it.env.done then
-      busted.publish({ 'test', 'end' }, it, parent, res and 'success' or 'failure')
-      if finally then busted.safe('finally', finally, it) end
-      dexecAll('after_each', parent, true)
+    block.rejectAll(element)
+    element.env.finally = function(fn) finally = fn end
+    element.env.pending = busted.pending
+
+    local pass, ancestor = block.execAll('before_each', parent, true)
+
+    if pass then
+      local status = busted.status('success')
+      if busted.safe_publish('test', { 'test', 'start' }, element, parent) then
+        status:update(busted.safe('it', element.run, element))
+        if finally then
+          block.reject('pending', element)
+          status:update(busted.safe('finally', finally, element))
+        end
+      else
+        status = busted.status('error')
+      end
+      busted.safe_publish('test', { 'test', 'end' }, element, parent, tostring(status))
     end
+
+    block.dexecAll('after_each', ancestor, true)
   end
 
-  local pending = function(pending)
-    local trace = busted.getTrace(pending, 3)
-    busted.publish({ 'test', 'end' }, pending, busted.context.parent(pending), 'pending', trace)
+  local pending = function(element)
+    local parent = busted.context.parent(element)
+    local status = 'pending'
+    if not busted.safe_publish('it', { 'test', 'start' }, element, parent) then
+      status = 'error'
+    end
+    busted.safe_publish('it', { 'test', 'end' }, element, parent, status)
   end
 
-  local async = function()
-    local parent = busted.context.get()
-    if not parent.env then parent.env = {} end
-
-    parent.env.done = require 'busted.done'.new(function()
-      busted.publish({ 'test', 'end' }, it, parent, 'success')
-      if finally then busted.safe('finally', finally, it) end
-      dexecAll('after_each', parent, true)
-    end)
-  end
-
-  busted.register('file', file)
+  busted.register('file', file, { envmode = 'insulate' })
 
   busted.register('describe', describe)
-  busted.register('context', describe)
+  busted.register('insulate', 'describe', { envmode = 'insulate' })
+  busted.register('expose', 'describe', { envmode = 'expose' })
 
   busted.register('it', it)
+
   busted.register('pending', pending)
 
-  busted.context.get().env.async = async
+  busted.register('before_each', { envmode = 'unwrap' })
+  busted.register('after_each', { envmode = 'unwrap' })
 
-  busted.register('setup')
-  busted.register('teardown')
-  busted.register('before_each')
-  busted.register('after_each')
+  busted.register('lazy_setup', { envmode = 'unwrap' })
+  busted.register('lazy_teardown', { envmode = 'unwrap' })
+  busted.register('strict_setup', { envmode = 'unwrap' })
+  busted.register('strict_teardown', { envmode = 'unwrap' })
 
-  assert = require 'luassert'
-  spy    = require 'luassert.spy'
-  mock   = require 'luassert.mock'
-  stub   = require 'luassert.stub'
+  busted.register('setup', 'strict_setup')
+  busted.register('teardown', 'strict_teardown')
+
+  busted.register('context', 'describe')
+  busted.register('spec', 'it')
+  busted.register('test', 'it')
+
+  busted.hide('file')
+
+  local assert = require 'luassert'
+  local spy    = require 'luassert.spy'
+  local mock   = require 'luassert.mock'
+  local stub   = require 'luassert.stub'
+  local match  = require 'luassert.match'
+
+  busted.export('assert', assert)
+  busted.export('spy', spy)
+  busted.export('mock', mock)
+  busted.export('stub', stub)
+  busted.export('match', match)
+
+  busted.exportApi('publish', busted.publish)
+  busted.exportApi('subscribe', busted.subscribe)
+  busted.exportApi('unsubscribe', busted.unsubscribe)
+
+  busted.exportApi('bindfenv', busted.bindfenv)
+  busted.exportApi('fail', busted.fail)
+  busted.exportApi('gettime', busted.gettime)
+  busted.exportApi('monotime', busted.monotime)
+  busted.exportApi('sleep', busted.sleep)
+  busted.exportApi('parent', busted.context.parent)
+  busted.exportApi('children', busted.context.children)
+  busted.exportApi('version', busted.version)
+
+  busted.bindfenv(assert, 'error', busted.fail)
+  busted.bindfenv(assert.is_true, 'error', busted.fail)
 
   return busted
 end
+
+return setmetatable({}, {
+  __call = function(self, busted)
+    init(busted)
+
+    return setmetatable(self, {
+      __index = function(self, key)
+        return busted.api[key]
+      end,
+
+      __newindex = function(self, key, value)
+        error('Attempt to modify busted')
+      end
+    })
+  end
+})
